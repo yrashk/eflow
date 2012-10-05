@@ -60,6 +60,20 @@ defmodule MyMachineNodeOverride do
   def available?(x), do: {false, x}  
 end
 
+defmodule PendingNodeMachine do
+  def content(x), do: {x}
+  use SimpleMachine
+
+  defoverridable a1: 1
+  defnode a1(state), true: pending(a_x), do: {true, state}
+
+  ## silence warnings
+  def test do
+   a2(nil) ; a3(nil)
+  end
+end
+
+
 defmodule EflowTest do
   use ExUnit.Case
 
@@ -70,6 +84,10 @@ defmodule EflowTest do
 
   test "overriding a node" do
     assert {"1"} == MyMachineNodeOverride.start("1")
+  end
+
+  test "pending node" do
+    assert :pending == PendingNodeMachine.start("1")  
   end
 
 end

@@ -10,11 +10,13 @@ defmodule Eflow.Machine do
 
       def finish(state), do: state
       defoverridable finish: 1
+
+      def pending(state), do: :pending
+      defoverridable pending: 1
     end
   end
 
   def machine_error(message), do: raise Error.new(message: message)
-
 end
 
 defmodule Eflow.Machine.Node do
