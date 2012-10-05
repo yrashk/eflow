@@ -6,7 +6,8 @@ defmodule Eflow.Machine do
     if opts == [], do: opts = [node: Eflow.Machine.Node]
     quote do
       import Eflow.Machine
-      import unquote(opts[:node])
+      import Eflow.Machine.Node
+      Module.register_attribute __MODULE__, :wrapper, persist: false, accumulate: false
 
       def finish(state), do: state
       defoverridable finish: 1
@@ -21,12 +22,12 @@ end
 
 defmodule Eflow.Machine.Node do
   defmacro defnode(name, opts, [do: block]) do
-    __defnode__(name, Keyword.put(opts, :do, block))
+    __defnode__(name, Keyword.put(opts, :do, block), __CALLER__)
   end
   defmacro defnode(name, opts) do
-    __defnode__(name, opts)
+    __defnode__(name, opts, __CALLER__)
   end
-  def __defnode__(name, opts) do
+  def __defnode__(name, opts, _caller) do
     pos = opts[:true] || quote do: finish
     {pos, _, _} = pos
     neg = opts[:false] || quote do: finish
@@ -34,10 +35,10 @@ defmodule Eflow.Machine.Node do
     block = opts[:do]
     quote do
       defp unquote(name) do
-        {result, new_state} = unquote(block)
+        {result, state} = unquote(block)
         case result do
-          true -> unquote(pos).(new_state)
-          false -> unquote(neg).(new_state)
+          true -> unquote(pos).(state)
+          false -> unquote(neg).(state)
         end
       end
     end
