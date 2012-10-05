@@ -2,10 +2,10 @@ Code.require_file "../test_helper.exs", __FILE__
 
 defmodule SimpleMachine do
 
-  defmacro __using__(_) do
+  defmacro __using__(opts) do
     quote do
       import SimpleMachine
-      use Eflow.Machine
+      use Eflow.Machine, unquote(opts)
 
       def available?(state) do
         {true, state}
@@ -73,6 +73,21 @@ defmodule PendingNodeMachine do
   end
 end
 
+defmodule Event do
+  def event(v) do
+    quote do
+      {b, s} = unquote(v)
+      {b, {:event, s}}
+    end
+  end
+end
+
+defmodule EventHandlingMachine do
+  def content(x), do: [x]
+  use SimpleMachine, event: Event
+
+end
+
 
 defmodule EflowTest do
   use ExUnit.Case
@@ -90,4 +105,7 @@ defmodule EflowTest do
     assert :pending == PendingNodeMachine.start("1")  
   end
 
+  test "event handling" do
+    assert {:event, [{:event,"1"}]} == EventHandlingMachine.start("1")  
+  end
 end

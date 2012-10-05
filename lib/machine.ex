@@ -3,7 +3,6 @@ defmodule Eflow.Machine do
   defexception Error, message: nil
 
   defmacro __using__(opts) do
-    if opts == [], do: opts = [node: Eflow.Machine.Node]
     quote do
       import Eflow.Machine
       import Eflow.Machine.Node
@@ -14,6 +13,17 @@ defmodule Eflow.Machine do
 
       def pending(state), do: :pending
       defoverridable pending: 1
+
+      defmacro event(value) do
+        case unquote(opts[:event]) do
+          nil -> value
+          {module, f} -> apply(module,f, [value])
+          {module, f, args} -> apply(module,f, [value|args])
+          module when is_atom(module) -> apply(module, :event, [value])
+          _ -> value
+        end
+      end
+
     end
   end
 
@@ -35,7 +45,7 @@ defmodule Eflow.Machine.Node do
     block = opts[:do]
     quote do
       defp unquote(name) do
-        {result, state} = unquote(block)
+        {result, state} = event(unquote(block))
         case result do
           true -> unquote(pos).(state)
           false -> unquote(neg).(state)
