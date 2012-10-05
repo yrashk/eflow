@@ -24,6 +24,10 @@ defmodule Eflow.Machine do
         end
       end
 
+      def doc(node_name) do
+        hd(lc {:node_doc, [{n, doc, shortdoc}]} inlist __info__(:attributes), n == node_name, do: {shortdoc, doc})
+      end
+
     end
   end
 

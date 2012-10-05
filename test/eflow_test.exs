@@ -97,6 +97,10 @@ defmodule EflowTest do
     assert :not_available == MyMachine1.start("1")
   end
 
+  test "documentation" do
+    assert {"Is service available?", _} = MyMachine.doc(:a1)
+  end
+
   test "overriding a node" do
     assert {"1"} == MyMachineNodeOverride.start("1")
   end
