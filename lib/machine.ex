@@ -6,7 +6,7 @@ defmodule Eflow.Machine do
     quote do
       import Eflow.Machine
       import Eflow.Machine.Node
-      Module.register_attribute __MODULE__, :wrapper, persist: false, accumulate: false
+      Module.register_attribute __MODULE__, :node_doc
 
       def finish(state), do: state
       defoverridable finish: 1
@@ -46,6 +46,9 @@ defmodule Eflow.Machine.Node do
     {node_name, line, [arg]} = name
     name = {node_name, line, [{:=, line, [arg, {:__state__, line, :quoted}]}]}
     quote do
+      @node_doc {unquote(node_name), @doc, @shortdoc}
+      Module.delete_attribute __MODULE__, :doc
+      Module.delete_attribute __MODULE__, :shortdoc          
       defp unquote(name) do
         {result, state} = event(unquote(node_name), __state__, unquote(block))
         case result do
