@@ -14,12 +14,12 @@ defmodule Eflow.Machine do
       def pending(state), do: :pending
       defoverridable pending: 1
 
-      defmacro event(value) do
+      defmacro event(n, state, value) do
         case unquote(opts[:event]) do
           nil -> value
-          {module, f} -> apply(module,f, [value])
-          {module, f, args} -> apply(module,f, [value|args])
-          module when is_atom(module) -> apply(module, :event, [value])
+          {module, f} -> apply(module,f, [n, state, value])
+          {module, f, args} -> apply(module,f, [n, state, value|args])
+          module when is_atom(module) -> apply(module, :event, [n, state, value])
           _ -> value
         end
       end
@@ -43,9 +43,11 @@ defmodule Eflow.Machine.Node do
     neg = opts[:false] || quote do: finish
     {neg, _, _} = neg
     block = opts[:do]
+    {node_name, line, [arg]} = name
+    name = {node_name, line, [{:=, line, [arg, {:__state__, line, :quoted}]}]}
     quote do
       defp unquote(name) do
-        {result, state} = event(unquote(block))
+        {result, state} = event(unquote(node_name), __state__, unquote(block))
         case result do
           true -> unquote(pos).(state)
           false -> unquote(neg).(state)

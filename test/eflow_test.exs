@@ -74,10 +74,10 @@ defmodule PendingNodeMachine do
 end
 
 defmodule Event do
-  def event(v) do
+  def event(n, state, v) do
     quote do
       {b, s} = unquote(v)
-      {b, {:event, s}}
+      {b, {:event, unquote(n), unquote(state), s}}
     end
   end
 end
@@ -106,6 +106,6 @@ defmodule EflowTest do
   end
 
   test "event handling" do
-    assert {:event, [{:event,"1"}]} == EventHandlingMachine.start("1")  
+    assert {:event,:a3,{:event,:a1,"1","1"},[{:event,:a1,"1","1"}]} == EventHandlingMachine.start("1")  
   end
 end
