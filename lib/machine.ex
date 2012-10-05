@@ -2,9 +2,11 @@ defmodule Eflow.Machine do
   
   defexception Error, message: nil
 
-  defmacro __using__(_) do
+  defmacro __using__(opts) do
+    if opts == [], do: opts = [node: Eflow.Machine.Node]
     quote do
       import Eflow.Machine
+      import unquote(opts[:node])
 
       def finish(state), do: state
       defoverridable finish: 1
@@ -13,6 +15,9 @@ defmodule Eflow.Machine do
 
   def machine_error(message), do: raise Error.new(message: message)
 
+end
+
+defmodule Eflow.Machine.Node do
   defmacro defnode(name, opts, [do: block]) do
     __defnode__(name, Keyword.put(opts, :do, block))
   end
