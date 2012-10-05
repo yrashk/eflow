@@ -50,12 +50,26 @@ defmodule MyMachine1 do
   def available?(x), do: {false, x}  
 end
 
+defmodule MyMachineNodeOverride do
+  def content(x), do: {x}
+  use SimpleMachine
+
+  defoverridable a2: 1
+  defnode a2(state), true: a3, do: {true, state}
+
+  def available?(x), do: {false, x}  
+end
+
 defmodule EflowTest do
   use ExUnit.Case
 
   test "simple test" do
     assert {"1"} == MyMachine.start("1")
     assert :not_available == MyMachine1.start("1")
+  end
+
+  test "overriding a node" do
+    assert {"1"} == MyMachineNodeOverride.start("1")
   end
 
 end
