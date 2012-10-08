@@ -15,12 +15,18 @@ defmodule Eflow.Renderer.Plantuml do
      state "#{name}" as #{shortname(name)}
      #{shortname(name)} : #{shortdoc}
     | <>
-    list_to_binary(
+    list_to_binary(exits(name, exits))
+  end
+
+  defp exits(name, []) do
+    exits(name, [_: :finish])
+  end
+  defp exits(name, exits) do
     lc {n, e} inlist exits do
       %b|  
        #{shortname(name)} --> #{shortname(e)} : #{exit_name(n)}
       |
-    end)
+    end  
   end
 
   defp exit_name(:_), do: "Any"
