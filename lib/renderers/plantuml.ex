@@ -16,11 +16,13 @@ defmodule Eflow.Renderer.Plantuml do
     list_to_binary(
     lc {n, e} inlist exits do
       %b|  
-       #{shortname(name)} --> #{shortname(e)} : #{n}
+       #{shortname(name)} --> #{shortname(e)} : #{exit_name(n)}
       |
     end)
   end
 
+  defp exit_name(:_), do: "Any"
+  defp exit_name(value), do: value
   defp shortname(:finish), do: "[*]"
   defp shortname(name), do: :erlang.phash2(name)
 end
