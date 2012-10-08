@@ -98,7 +98,7 @@ defmodule EflowTest do
   end
 
   test "documentation" do
-    assert {"Is service available?", _} = MyMachine.doc(:a1)
+    assert {"Is service available?", _} = MyMachine.__doc__(:a1)
   end
 
   test "overriding a node" do

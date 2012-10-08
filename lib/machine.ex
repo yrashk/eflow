@@ -24,8 +24,12 @@ defmodule Eflow.Machine do
         end
       end
 
-      def doc(node_name) do
-        hd(lc {:node_doc, [{n, doc, shortdoc}]} inlist __info__(:attributes), n == node_name, do: {shortdoc, doc})
+      def __doc__(node_name) do
+        hd(lc {:node_doc, [{n, doc, shortdoc, _pos, _neg}]} inlist __info__(:attributes), n == node_name, do: {shortdoc, doc})
+      end
+
+      def __nodes__ do
+        Keyword.from_enum(lc {:node_doc, [{n, doc, shortdoc, pos, neg}]} inlist __info__(:attributes), do: {n, {pos, neg, doc, shortdoc}})
       end
 
     end
@@ -50,7 +54,7 @@ defmodule Eflow.Machine.Node do
     {node_name, line, [arg]} = name
     name = {node_name, line, [{:=, line, [arg, {:__state__, line, :quoted}]}]}
     quote do
-      @node_doc {unquote(node_name), @doc, @shortdoc}
+      @node_doc {unquote(node_name), @doc, @shortdoc, unquote(pos), unquote(neg)}
       Module.delete_attribute __MODULE__, :doc
       Module.delete_attribute __MODULE__, :shortdoc          
       defp unquote(name) do
