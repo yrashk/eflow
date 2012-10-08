@@ -16,9 +16,9 @@ defmodule SimpleMachine do
         a1(state)
       end
       @shortdoc "Is service available?"
-      defnode a1(state), true: a3, false: a2 do
+      defnode a1(state), true: a3, false: a2, maybe: a2 do
         {value, state} = available?(state)
-        {value == true, state}
+        {is_boolean(value) and value == true, state}
       end
 
       @shortdoc "Sorry, not available"

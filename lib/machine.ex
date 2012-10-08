@@ -3,7 +3,7 @@ defmodule Eflow.Machine do
   defexception Error, message: nil
 
   defmacro __using__(opts) do
-    quote do
+    quote location: :keep do
       import Eflow.Machine
       import Eflow.Machine.Node
       Module.register_attribute __MODULE__, :node_doc
@@ -25,11 +25,11 @@ defmodule Eflow.Machine do
       end
 
       def __doc__(node_name) do
-        hd(lc {:node_doc, [{n, doc, shortdoc, _pos, _neg}]} inlist __info__(:attributes), n == node_name, do: {shortdoc, doc})
+        hd(lc {:node_doc, [{n, doc, shortdoc, exits}]} inlist __info__(:attributes), n == node_name, do: {shortdoc, doc})
       end
 
       def __nodes__ do
-        Keyword.from_enum(lc {:node_doc, [{n, doc, shortdoc, pos, neg}]} inlist __info__(:attributes), do: {n, {pos, neg, doc, shortdoc}})
+        Keyword.from_enum(lc {:node_doc, [{n, doc, shortdoc, exits}]} inlist __info__(:attributes), do: {n, {exits, doc, shortdoc}})
       end
 
     end
@@ -45,23 +45,34 @@ defmodule Eflow.Machine.Node do
   defmacro defnode(name, opts) do
     __defnode__(name, opts, __CALLER__)
   end
-  def __defnode__(name, opts, _caller) do
-    pos = opts[:true] || quote do: finish
-    {pos, _, _} = pos
-    neg = opts[:false] || quote do: finish
-    {neg, _, _} = neg
-    block = opts[:do]
-    {node_name, line, [arg]} = name
+  def __defnode__({node_name, line, [arg]}, opts, caller) do
+    block = opts[:do]  
+    conns = lc {key, {node, _, _}} inlist opts, key != :do, do: {key, node}
+    connections =  
+    lc {key, node} inlist conns do
+      {[key], (quote do: unquote(node)(state))}
+    end
+    case Macro.expand(block,caller) do
+      {block_ex, _} ->
+        if is_boolean(block_ex) do
+          connections = Enum.filter connections, fn({[x], _}) -> x == block_ex end
+        end
+        unless Enum.any?(connections, fn({k, _}) -> k == block_ex end) do
+           connections = connections ++ [{[{:_, line, :quoted}], (quote do: finish(state))}]
+        end
+      _ -> 
+        connections = connections ++ [{[{:_, line, :quoted}], (quote do: finish(state))}]
+    end
+    connections = {:"->", line, connections}
     name = {node_name, line, [{:=, line, [arg, {:__state__, line, :quoted}]}]}
     quote do
-      @node_doc {unquote(node_name), @doc, @shortdoc, unquote(pos), unquote(neg)}
+      @node_doc {unquote(node_name), @doc, @shortdoc, unquote(conns)}
       Module.delete_attribute __MODULE__, :doc
       Module.delete_attribute __MODULE__, :shortdoc          
       defp unquote(name) do
         {result, state} = event(unquote(node_name), __state__, unquote(block))
         case result do
-          true -> unquote(pos).(state)
-          false -> unquote(neg).(state)
+          unquote(connections)
         end
       end
     end

@@ -8,13 +8,17 @@ defmodule Eflow.Renderer.Plantuml do
     "\n@enduml"
   end
 
-  defp node_diagram({name, {pos, neg, _doc, shortdoc}}) do
+  defp node_diagram({name, {exits, _doc, shortdoc}}) do
     %b|
      state "#{name}" as #{shortname(name)}
      #{shortname(name)} : #{shortdoc}
-     #{shortname(name)} --> #{shortname(pos)} : true
-     #{shortname(name)} --> #{shortname(neg)} : false
-    |
+    | <>
+    list_to_binary(
+    lc {n, e} inlist exits do
+      %b|  
+       #{shortname(name)} --> #{shortname(e)} : #{n}
+      |
+    end)
   end
 
   defp shortname(:finish), do: "[*]"
