@@ -1,12 +1,9 @@
 Code.require_file "../test_helper.exs", __FILE__
 
 defmodule SimpleMachine do
-
-  defmacro __using__(opts) do
+  use Eflow.Machine.Definition
+  def define(_opts) do
     quote do
-      import SimpleMachine
-      use Eflow.Machine, unquote(opts)
-
       def available?(state) do
         {true, state}
       end

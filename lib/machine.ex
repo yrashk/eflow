@@ -1,12 +1,39 @@
+defmodule Eflow.Machine.Definition do
+  use Behaviour
+
+  defcallback define(opts)
+
+  defmacro __using__(_) do
+   module = __CALLER__.module
+   quote do
+     defmacro __using__(opts) do
+       Eflow.Machine.Definition.__using__macro__(unquote(module), opts)
+     end
+   end
+  end   
+
+  def __using__macro__(module, opts) do
+    define = module.define(opts)
+    quote do
+      import unquote(module)
+      import Eflow.Machine
+      use Eflow.Machine, unquote(opts)      
+      unquote(define)
+    end
+  end
+
+end
 defmodule Eflow.Machine do
   
   defexception Error, message: nil
 
   defmacro __using__(opts) do
     quote location: :keep do
-      import Eflow.Machine
       import Eflow.Machine.Node
       Module.register_attribute __MODULE__, :node_doc
+
+      def define(_), do: nil
+      defoverridable define: 1
 
       def finish(state), do: state
       defoverridable finish: 1
