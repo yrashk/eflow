@@ -55,8 +55,12 @@ defmodule Eflow.Machine do
         hd(lc {:node_doc, [{n, doc, shortdoc, exits}]} inlist __info__(:attributes), n == node_name, do: {shortdoc, doc})
       end
 
+      def __nodes__(:raw) do
+        lc {:node_doc, [{n, doc, shortdoc, exits}]} inlist __info__(:attributes), do: {n, {exits, doc, shortdoc}}      
+      end
+
       def __nodes__ do
-        Keyword.from_enum(lc {:node_doc, [{n, doc, shortdoc, exits}]} inlist __info__(:attributes), do: {n, {exits, doc, shortdoc}})
+        Keyword.from_enum(__nodes__(:raw))
       end
 
     end

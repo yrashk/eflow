@@ -1,7 +1,7 @@
 defmodule Eflow.Renderer.Plantuml do
   
   def render(machine, opts // []) do
-    nodes = machine.__nodes__
+    nodes = machine.__nodes__(:raw)
     image = opts[:image] || "#{to_binary(machine)}.png"
     start = opts[:start] || hd(lc {name, _} inlist nodes, do: name)
     "@startuml #{image}\n" <>
