@@ -1,7 +1,7 @@
 defmodule Eflow.Machine.Definition do
   use Behaviour
 
-  defcallback define(opts)
+  defcallback define(opts :: any), do: any
 
   defmacro __using__(_) do
    module = __CALLER__.module
