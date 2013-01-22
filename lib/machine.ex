@@ -76,7 +76,7 @@ defmodule Eflow.Machine.Node do
   defmacro defnode(name, opts) do
     __defnode__(name, opts, __CALLER__)
   end
-  def __defnode__({node_name, line, [arg]}, opts, caller) do
+  def __defnode__({node_name, meta, [arg]}, opts, caller) do
     block = opts[:do]  
     conns = lc {key, {node, _, _}} inlist opts, key != :do, do: {key, node}
     connections =  
@@ -89,13 +89,13 @@ defmodule Eflow.Machine.Node do
           connections = Enum.filter connections, fn({[x], _}) -> x == block_ex end
         end
         unless Enum.any?(connections, fn({k, _}) -> k == block_ex end) do
-           connections = connections ++ [{[{:_, line, :quoted}], (quote do: finish(state))}]
+           connections = connections ++ [{[(quote do: _)], (quote do: finish(state))}]
         end
       _ -> 
-        connections = connections ++ [{[{:_, line, :quoted}], (quote do: finish(state))}]
+        connections = connections ++ [{[(quote do: _)], (quote do: finish(state))}]
     end
-    connections = {:"->", line, connections}
-    name = {node_name, line, [{:=, line, [arg, {:__state__, line, :quoted}]}]}
+    connections = {:"->", meta, connections}
+    name = {node_name, meta, [{:=, meta, [arg, (quote do: __state__)]}]}
     quote do
       @node_doc {unquote(node_name), @doc, @shortdoc, unquote(conns)}
       Module.delete_attribute __MODULE__, :doc
